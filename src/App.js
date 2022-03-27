@@ -1,23 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useRef } from 'react';
 
-function App() {
+import styles from './App.module.scss';
+
+const App = () => {
+  const CircleRef = useRef(null);
+
+  useEffect(() => {
+    setTimeout(() => {
+      CircleRef.current.classList.add("Start");
+      CircleRef.current.classList.add("Sunny");
+    }, 1000);
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className={styles.App}>
+      <div
+        className={styles.Circle}
+        ref={CircleRef}
+      >
+        <span>75&deg;F</span>
+      </div>
     </div>
   );
 }

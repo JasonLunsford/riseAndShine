@@ -1,0 +1,24 @@
+.App {
+  background-image: url('./assets/blue_sky_1.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  display: grid;
+  height: 100vh;
+
+  .Circle {
+    align-items: center;
+    display:  flex;
+    height:   200px;
+    justify-content: center;
+    position: absolute;
+    width:    200px;
+    top:      1200px;
+    left:     17%;
+
+    span {
+      font-family: Verdana, Geneva, Tahoma, sans-serif;
+      font-size:   24px;
+    }
+  }
+}
+
