@@ -46,9 +46,9 @@ const App = () => {
   };
 
   const configureGuide = () => {
-    GuideRef.current.style.top    = 'calc(100% - ' + radius + 'px)';
-    GuideRef.current.style.left    = 'calc(50% - ' + radius + 'px)';
- 	  GuideRef.current.style.width 	= radius * 2 +'px';
+    GuideRef.current.style.top = 'calc(100% - ' + radius + 'px)';
+    GuideRef.current.style.left = 'calc(50% - ' + radius + 'px)';
+    GuideRef.current.style.width = radius * 2 +'px';
     GuideRef.current.style.height = radius * 2 +'px';
   };
 
@@ -68,8 +68,8 @@ const App = () => {
   const configureSunPath = () => {
     let pathData = {};
 
- 		pathData.startAngle 	 = Math.PI; 
- 		pathData.endAngle   	 = 0;
+    pathData.startAngle 	 = Math.PI; 
+    pathData.endAngle   	 = 0;
     pathData.animationTime = 10000; // in milliseconds
     pathData.vector	   		 = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
     pathData.start				 = false;
@@ -90,10 +90,10 @@ const App = () => {
     // }
 
     const elapsed = Date.now() - sunPath.now;
-		sunPath.now	= Date.now();
+    sunPath.now	= Date.now();
     sunPath.curAngle += elapsed * sunPath.vector; 
  
-		let x = radius * Math.cos(sunPath.curAngle);
+    let x = radius * Math.cos(sunPath.curAngle);
     let y = radius * Math.sin(sunPath.curAngle);
 
     SunRef.current.style.left = (origin.x + x) + 'px';
