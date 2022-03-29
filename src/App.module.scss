@@ -5,6 +5,12 @@
   display: grid;
   height: 100vh;
 
+  .Guide {
+    border: 1px solid black;
+    border-radius: 100%;
+    position: absolute;
+  }
+
   .Circle {
     align-items: center;
     display:  flex;
@@ -12,13 +18,17 @@
     justify-content: center;
     position: absolute;
     width:    200px;
-    top:      1200px;
-    left:     17%;
 
     span {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
       font-size:   24px;
     }
+  }
+
+  .Sunny {
+    background-image: url('./assets/sunny.png');
+    background-size: cover;
+    background-repeat: no-repeat;
   }
 }
 
