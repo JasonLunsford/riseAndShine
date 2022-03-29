@@ -4,20 +4,31 @@ import clsx from 'clsx';
 
 import styles from './App.module.scss';
 
-const RADIUS = 500;
-
 const App = () => {
   const SunRef = useRef(null);
   const GuideRef = useRef(null);
 
+  const [radius, setRadius] = useState();
   const [origin, setOrigin] = useState();
   const [sunPath, setSunPath] = useState();
 
   useEffect(() => {
-    configureGuide();
-    calculateOrigin();
-    configureSunPath();
+    calculateRadius();
+
+    window.addEventListener('resize', reload, false);
+
+    return () => {
+      window.removeEventListener('resize', reload);
+    };
   }, []);
+
+  useEffect(() => {
+    if (radius) {
+      configureGuide();
+      calculateOrigin();
+      configureSunPath();
+    }
+  }, [radius]);
 
   useEffect(() => {
     if (sunPath) {
@@ -25,11 +36,20 @@ const App = () => {
     }
   }, [sunPath]);
 
+  const reload = () => {
+    document.location.reload();
+    calculateRadius();
+  };
+
+  const calculateRadius = () => {
+    setRadius(window.innerWidth * .3);
+  };
+
   const configureGuide = () => {
-    GuideRef.current.style.top    = 'calc(100% - ' + RADIUS + 'px)';
-    GuideRef.current.style.left    = 'calc(50% - ' + RADIUS + 'px)';
- 	  GuideRef.current.style.width 	= RADIUS * 2 +'px';
-    GuideRef.current.style.height = RADIUS * 2 +'px';
+    GuideRef.current.style.top    = 'calc(100% - ' + radius + 'px)';
+    GuideRef.current.style.left    = 'calc(50% - ' + radius + 'px)';
+ 	  GuideRef.current.style.width 	= radius * 2 +'px';
+    GuideRef.current.style.height = radius * 2 +'px';
   };
 
   const calculateOrigin = () => {
@@ -73,8 +93,8 @@ const App = () => {
 		sunPath.now	= Date.now();
     sunPath.curAngle += elapsed * sunPath.vector; 
  
-		let x = RADIUS * Math.cos(sunPath.curAngle);
-    let y = RADIUS * Math.sin(sunPath.curAngle);
+		let x = radius * Math.cos(sunPath.curAngle);
+    let y = radius * Math.sin(sunPath.curAngle);
 
     SunRef.current.style.left = (origin.x + x) + 'px';
     SunRef.current.style.top	= (origin.y + y) + 'px';
