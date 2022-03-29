@@ -68,12 +68,12 @@ const App = () => {
   const configureSunPath = () => {
     let pathData = {};
 
-    pathData.startAngle 	 = Math.PI; 
-    pathData.endAngle   	 = 0;
+    pathData.startAngle = Math.PI; 
+    pathData.endAngle = 0;
     pathData.animationTime = 10000; // in milliseconds
-    pathData.vector	   		 = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
-    pathData.start				 = false;
-    pathData.curAngle	 		 = pathData.startAngle;
+    pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
+    pathData.start = false;
+    pathData.curAngle = pathData.startAngle;
 
     setSunPath(pathData);
   };
@@ -81,7 +81,7 @@ const App = () => {
   const startAnimation = () => {
     if (!sunPath.start) {
       sunPath.start = Date.now();
-      sunPath.now	 = Date.now();
+      sunPath.now = Date.now();
     }
     
     // if ((sunPath.now - sunPath.start) > sunPath.animationTime) { 
@@ -90,14 +90,14 @@ const App = () => {
     // }
 
     const elapsed = Date.now() - sunPath.now;
-    sunPath.now	= Date.now();
+    sunPath.now = Date.now();
     sunPath.curAngle += elapsed * sunPath.vector; 
  
     let x = radius * Math.cos(sunPath.curAngle);
     let y = radius * Math.sin(sunPath.curAngle);
 
     SunRef.current.style.left = (origin.x + x) + 'px';
-    SunRef.current.style.top	= (origin.y + y) + 'px';
+    SunRef.current.style.top = (origin.y + y) + 'px';
 
     requestAnimationFrame(startAnimation);
   };
