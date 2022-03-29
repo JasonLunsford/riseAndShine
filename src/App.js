@@ -110,7 +110,11 @@ const App = () => {
       >
         <span>75&deg;F</span>
       </div>
-      <div className={styles.Guide} ref={GuideRef} />
+      <div className={styles.Guide} ref={GuideRef}>
+        <div className={styles.TimeBox}>
+          10:17
+        </div>
+      </div>
     </div>
   );
 }

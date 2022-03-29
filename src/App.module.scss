@@ -6,9 +6,21 @@
   height: 100vh;
 
   .Guide {
+    background-color: #ffffff9a;
     border: 1px solid black;
     border-radius: 100%;
+    display: flex;
+    justify-content: center;
     position: absolute;
+
+    .TimeBox {
+      background: #000;
+      color:    #fff;
+      font-size: 72px;
+      height: fit-content;
+      margin-top: 30%;
+      padding: 10px;
+    }
   }
 
   .Circle {
@@ -18,6 +30,7 @@
     justify-content: center;
     position: absolute;
     width:    200px;
+    z-index:  10;
 
     span {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
