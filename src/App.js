@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import axios from 'axios';
 import clsx from 'clsx';
 
 import styles from './App.module.scss';
@@ -12,29 +13,127 @@ const App = () => {
   const [origin, setOrigin] = useState();
   const [sunPath, setSunPath] = useState();
 
+  const [instance, setInstance] = useState();
+  const [geoData, setGeoData] = useState();
+  const [weatherData, setWeatherData] = useState();
+
+  const [time, setTime] = useState();
+
+  const initAxios = async () => {
+    return axios.create({
+      baseURL: 'http://api.openweathermap.org/'
+    });
+  };
+
   useEffect(() => {
+    setInstance(initAxios());
     calculateRadius();
 
     window.addEventListener('resize', reload, false);
 
+    setTime(getCurrentTime());
+    const startClock = setInterval(() => {
+      setTime(getCurrentTime());
+    }, 1000);
+
     return () => {
       window.removeEventListener('resize', reload);
+      clearInterval(startClock);
     };
   }, []);
 
   useEffect(() => {
-    if (radius) {
+    const getGeoData = async () => {
+      await instance.then(promise => {
+        return promise['get'](`geo/1.0/zip?zip=15044,US&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`)
+        .then(data => {
+          setGeoData(data.data);
+        });
+      });
+    };
+
+    if (instance) {
+      getGeoData();
+    }
+  }, [instance]);
+
+  useEffect(() => {
+    const getTimeAndWeather = async () => {
+      await instance.then(promise => {
+        return promise['get'](`data/2.5/weather?lat=${geoData.lat}&lon=${geoData.lon}&units=imperial&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`)
+        .then(data => {
+          setWeatherData(data.data);
+        });
+      });
+    };
+  
+    if (geoData) {
+      getTimeAndWeather();
+    }
+  }, [geoData]);
+
+  useEffect(() => {
+    if (radius && weatherData) {
+      const offset = calculateOffset();
+
       configureGuide();
       calculateOrigin();
-      configureSunPath();
+      configureSunPath(offset);
     }
-  }, [radius]);
+  }, [radius, weatherData]);
 
   useEffect(() => {
     if (sunPath) {
       startAnimation();
     }
   }, [sunPath]);
+
+  const calculateOffset = () => {
+    const sunrise = new Date(weatherData.sys.sunrise * 1000);
+    const sunset = new Date(weatherData.sys.sunset * 1000);
+    const now = new Date();
+
+    const daylightHours = Math.abs((sunset - sunrise) / (1000 * 60 * 60));
+    const spentDaylightHours = Math.abs((now - sunrise) / (1000 * 60 * 60));
+
+    return Math.PI * (spentDaylightHours / daylightHours);
+  };
+
+  const getCurrentTime = () => {
+    const now = new Date();
+
+    const rawHours = now.getHours();
+    const rawMinutes = now.getMinutes();
+    let hours = rawHours, minutes = rawMinutes;
+
+    if (rawHours < 10) {
+      hours = '0' + rawHours;
+    }
+
+    if (rawMinutes < 10) {
+      minutes = '0' + rawMinutes;
+    }
+
+    return `${hours}:${minutes}`;
+  }
+
+  const getTime = timestamp => {
+    const adjusted = new Date(timestamp * 1000);
+
+    const rawHours = adjusted.getHours();
+    const rawMinutes = adjusted.getMinutes();
+    let hours = rawHours, minutes = rawMinutes;
+
+    if (rawHours < 10) {
+      hours = '0' + rawHours;
+    }
+
+    if (rawMinutes < 10) {
+      minutes = '0' + rawMinutes;
+    }
+    
+    return `${hours}:${minutes}`;
+  }
 
   const reload = () => {
     document.location.reload();
@@ -65,12 +164,12 @@ const App = () => {
     });
   };
 
-  const configureSunPath = () => {
+  const configureSunPath = (offset = 0) => {
     let pathData = {};
 
-    pathData.startAngle = Math.PI; 
+    pathData.startAngle = Math.PI + offset; 
     pathData.endAngle = 0;
-    pathData.animationTime = 10000; // in milliseconds
+    pathData.animationTime = 86400000; // in milliseconds
     pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
     pathData.start = false;
     pathData.curAngle = pathData.startAngle;
@@ -102,17 +201,22 @@ const App = () => {
     requestAnimationFrame(startAnimation);
   };
 
+  if (!weatherData) return null;
+
   return (
     <div className={styles.App}>
       <div
         className={clsx(styles.Circle, styles.Sunny)}
         ref={SunRef}
       >
-        <span>75&deg;F</span>
+        <span>{Math.round(weatherData.main.temp)}&deg;F</span>
       </div>
       <div className={styles.Guide} ref={GuideRef}>
         <div className={styles.TimeBox}>
-          10:17
+          <div className={styles.MainTime}>{time}</div>
+          <div>
+            {getTime(weatherData.sys.sunrise)} | {getTime(weatherData.sys.sunset)}
+          </div>
         </div>
       </div>
     </div>

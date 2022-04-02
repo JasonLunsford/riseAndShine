@@ -1,12 +1,10 @@
 .App {
-  background-image: url('./assets/blue_sky_1.jpg');
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-color: #5ca0f2;
+  background-image: linear-gradient(315deg, #5ca0f2 0%, #f5f7f6 74%);
   display: grid;
   height: 100vh;
 
   .Guide {
-    background-color: #ffffff9a;
     border: 1px solid black;
     border-radius: 100%;
     display: flex;
@@ -14,12 +12,20 @@
     position: absolute;
 
     .TimeBox {
-      background: #000;
-      color:    #fff;
-      font-size: 72px;
-      height: fit-content;
-      margin-top: 30%;
-      padding: 10px;
+      color:    #000;
+      height:     fit-content;
+      margin-top: 25%;
+      padding:    10px;
+
+      .MainTime {
+        display:         flex;
+        font-size:       10rem;
+        justify-content: center;
+      }
+
+      div {
+        font-size: 4.2rem;
+      }
     }
   }
 
