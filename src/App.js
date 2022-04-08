@@ -5,6 +5,10 @@ import clsx from 'clsx';
 
 import styles from './App.module.scss';
 
+const instance = axios.create({
+  baseURL: 'http://api.openweathermap.org/'
+});
+
 const App = () => {
   const SunRef = useRef(null);
   const GuideRef = useRef(null);
@@ -13,20 +17,13 @@ const App = () => {
   const [origin, setOrigin] = useState();
   const [sunPath, setSunPath] = useState();
 
-  const [instance, setInstance] = useState();
   const [geoData, setGeoData] = useState();
   const [weatherData, setWeatherData] = useState();
 
   const [time, setTime] = useState();
 
-  const initAxios = async () => {
-    return axios.create({
-      baseURL: 'http://api.openweathermap.org/'
-    });
-  };
-
   useEffect(() => {
-    setInstance(initAxios());
+    initApp();
     calculateRadius();
 
     window.addEventListener('resize', reload, false);
@@ -36,41 +33,16 @@ const App = () => {
       setTime(getCurrentTime());
     }, 1000);
 
+    const startWeatherUpdate = setInterval(() => {
+      updateWeather();
+    }, 3600000);
+
     return () => {
       window.removeEventListener('resize', reload);
       clearInterval(startClock);
+      clearInterval(startWeatherUpdate);
     };
   }, []);
-
-  useEffect(() => {
-    const getGeoData = async () => {
-      await instance.then(promise => {
-        return promise['get'](`geo/1.0/zip?zip=15044,US&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`)
-        .then(data => {
-          setGeoData(data.data);
-        });
-      });
-    };
-
-    if (instance) {
-      getGeoData();
-    }
-  }, [instance]);
-
-  useEffect(() => {
-    const getTimeAndWeather = async () => {
-      await instance.then(promise => {
-        return promise['get'](`data/2.5/weather?lat=${geoData.lat}&lon=${geoData.lon}&units=imperial&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`)
-        .then(data => {
-          setWeatherData(data.data);
-        });
-      });
-    };
-  
-    if (geoData) {
-      getTimeAndWeather();
-    }
-  }, [geoData]);
 
   useEffect(() => {
     if (radius && weatherData) {
@@ -87,6 +59,20 @@ const App = () => {
       startAnimation();
     }
   }, [sunPath]);
+
+  const initApp = async () => {
+    const { data:geoApiData } = await instance.get(`geo/1.0/zip?zip=15044,US&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`);
+    const { data:weatherApiData } = await instance.get(`data/2.5/weather?lat=${geoApiData.lat}&lon=${geoApiData.lon}&units=imperial&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`);
+
+    setGeoData(geoApiData);
+    setWeatherData(weatherApiData);
+  };
+
+  const updateWeather = async () => {
+    const { data:weatherApiData } = await instance.get(`data/2.5/weather?lat=${geoData.lat}&lon=${geoData.lon}&units=imperial&appid=${process.env.REACT_APP_OPENWEATHER_KEY}`);
+
+    setWeatherData(weatherApiData);
+  }
 
   const calculateOffset = () => {
     const sunrise = new Date(weatherData.sys.sunrise * 1000);
@@ -182,11 +168,6 @@ const App = () => {
       sunPath.start = Date.now();
       sunPath.now = Date.now();
     }
-    
-    // if ((sunPath.now - sunPath.start) > sunPath.animationTime) { 
-    //   alert('Animation Ended!'); 
-    //   return; 
-    // }
 
     const elapsed = Date.now() - sunPath.now;
     sunPath.now = Date.now();

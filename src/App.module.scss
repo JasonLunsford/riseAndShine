@@ -1,8 +1,12 @@
 .App {
   background-color: #5ca0f2;
   background-image: linear-gradient(315deg, #5ca0f2 0%, #f5f7f6 74%);
-  display: grid;
-  height: 100vh;
+  display:          grid;
+  height:           100vh;
+  left:             0;
+  position:         fixed;
+  top:              0;
+  width:            100%;
 
   .Guide {
     border: 1px solid black;
@@ -30,13 +34,13 @@
   }
 
   .Circle {
-    align-items: center;
-    display:  flex;
-    height:   200px;
+    align-items:     center;
+    display:         flex;
+    height:          200px;
     justify-content: center;
-    position: absolute;
-    width:    200px;
-    z-index:  10;
+    position:        absolute;
+    width:           200px;
+    z-index:         10;
 
     span {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -45,8 +49,8 @@
   }
 
   .Sunny {
-    background-image: url('./assets/sunny.png');
-    background-size: cover;
+    background-image:  url('./assets/sunny.png');
+    background-size:   cover;
     background-repeat: no-repeat;
   }
 }
