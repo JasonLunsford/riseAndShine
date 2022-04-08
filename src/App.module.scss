@@ -33,14 +33,16 @@
     }
   }
 
-  .Circle {
-    align-items:     center;
-    display:         flex;
-    height:          200px;
-    justify-content: center;
-    position:        absolute;
-    width:           200px;
-    z-index:         10;
+  .BaseIcon {
+    align-items:       center;
+    background-size:   cover;
+    background-repeat: no-repeat;
+    display:           flex;
+    height:            200px;
+    justify-content:   center;
+    position:          absolute;
+    width:             200px;
+    z-index:           10;
 
     span {
       font-family: Verdana, Geneva, Tahoma, sans-serif;
@@ -48,10 +50,20 @@
     }
   }
 
-  .Sunny {
-    background-image:  url('./assets/sunny.png');
-    background-size:   cover;
-    background-repeat: no-repeat;
+  .Clear {
+    background-image:  url('./assets/clear.png');
+  }
+
+  .Clouds {
+    background-image: url('./assets/cloudy.png');
+  }
+
+  .Thunderstorm {
+    background-image: url('./assets/thunderstorm.jpeg');
+  }
+
+  .Drizzle {
+    background-image: url('./assets/drizzle.png');
   }
 }
 

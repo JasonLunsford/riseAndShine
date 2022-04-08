@@ -104,19 +104,19 @@ const App = () => {
   }
 
   const getTime = timestamp => {
+    const fixTime = value => {
+      if (value < 10) {
+        return '0' + value;
+      }
+
+      return value;
+    }
+
     const adjusted = new Date(timestamp * 1000);
 
     const rawHours = adjusted.getHours();
     const rawMinutes = adjusted.getMinutes();
-    let hours = rawHours, minutes = rawMinutes;
-
-    if (rawHours < 10) {
-      hours = '0' + rawHours;
-    }
-
-    if (rawMinutes < 10) {
-      minutes = '0' + rawMinutes;
-    }
+    let hours = fixTime(rawHours), minutes = fixTime(rawMinutes);
     
     return `${hours}:${minutes}`;
   }
@@ -155,7 +155,7 @@ const App = () => {
 
     pathData.startAngle = Math.PI + offset; 
     pathData.endAngle = 0;
-    pathData.animationTime = 86400000; // in milliseconds
+    pathData.animationTime = 86400000; // 24 hours in milliseconds
     pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
     pathData.start = false;
     pathData.curAngle = pathData.startAngle;
@@ -182,12 +182,33 @@ const App = () => {
     requestAnimationFrame(startAnimation);
   };
 
+  const getWeatherIcon = () => {
+    const condition = weatherData.weather[0].main;
+
+    switch (condition) {
+      case 'Clear':
+        return styles.Clear;
+      case 'Clouds':
+        return styles.Clouds;
+      case 'Thunderstorm':
+        return styles.Thunderstorm;
+      case 'Drizzle':
+        return styles.Drizzle;
+      case 'Rain':
+        return styles.Rain;
+      case 'Snow':
+        return styles.Snow;
+      case 'Fog':
+        return styles.Fog;
+    }
+  }
+
   if (!weatherData) return null;
 
   return (
     <div className={styles.App}>
       <div
-        className={clsx(styles.Circle, styles.Sunny)}
+        className={clsx(styles.BaseIcon, getWeatherIcon())}
         ref={SunRef}
       >
         <span>{Math.round(weatherData.main.temp)}&deg;F</span>
