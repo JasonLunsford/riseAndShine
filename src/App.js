@@ -3,11 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import clsx from 'clsx';
 
+import { FixTime, GetCurrentTime } from './helpers/Helpers';
+
 import styles from './App.module.scss';
 
 const instance = axios.create({
   baseURL: 'http://api.openweathermap.org/'
 });
+
+const ClockWorker = new Worker(new URL('./workers/Clock.js', import.meta.url));
 
 const App = () => {
   const SunRef = useRef(null);
@@ -20,7 +24,7 @@ const App = () => {
   const [geoData, setGeoData] = useState();
   const [weatherData, setWeatherData] = useState();
 
-  const [time, setTime] = useState();
+  const [time, setTime] = useState(GetCurrentTime());
 
   useEffect(() => {
     initApp();
@@ -28,10 +32,10 @@ const App = () => {
 
     window.addEventListener('resize', reload, false);
 
-    setTime(getCurrentTime());
-    const startClock = setInterval(() => {
-      setTime(getCurrentTime());
-    }, 1000);
+    ClockWorker.postMessage({ start: true });
+    ClockWorker.onmessage = ({ data }) => {
+      setTime(data);
+    };
 
     const startWeatherUpdate = setInterval(() => {
       updateWeather();
@@ -39,7 +43,8 @@ const App = () => {
 
     return () => {
       window.removeEventListener('resize', reload);
-      clearInterval(startClock);
+
+      ClockWorker.terminate();
       clearInterval(startWeatherUpdate);
     };
   }, []);
@@ -85,38 +90,12 @@ const App = () => {
     return Math.PI * (spentDaylightHours / daylightHours);
   };
 
-  const getCurrentTime = () => {
-    const now = new Date();
-
-    const rawHours = now.getHours();
-    const rawMinutes = now.getMinutes();
-    let hours = rawHours, minutes = rawMinutes;
-
-    if (rawHours < 10) {
-      hours = '0' + rawHours;
-    }
-
-    if (rawMinutes < 10) {
-      minutes = '0' + rawMinutes;
-    }
-
-    return `${hours}:${minutes}`;
-  }
-
   const getTime = timestamp => {
-    const fixTime = value => {
-      if (value < 10) {
-        return '0' + value;
-      }
-
-      return value;
-    }
-
     const adjusted = new Date(timestamp * 1000);
 
     const rawHours = adjusted.getHours();
     const rawMinutes = adjusted.getMinutes();
-    let hours = fixTime(rawHours), minutes = fixTime(rawMinutes);
+    let hours = FixTime(rawHours), minutes = FixTime(rawMinutes);
     
     return `${hours}:${minutes}`;
   }
