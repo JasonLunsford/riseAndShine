@@ -1,6 +1,6 @@
 import { GetCurrentTime } from '../helpers/Helpers';
 
-onmessage = (event) => {
+onmessage = () => {
     setInterval(() => {
         postMessage(GetCurrentTime());
     }, 1000);
