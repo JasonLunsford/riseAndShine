@@ -88,9 +88,17 @@ const App = () => {
     return Math.PI * (spentDaylightHours / daylightHours);
   };
 
+  // Simple technique to detect "end" of resizing event, allows repainting
+  // once user has finished resizing
   const reload = () => {
-    document.location.reload();
-    calculateRadius();
+    SunRef.current.style.display = 'none';
+    GuideRef.current.style.display = 'none';
+
+    clearTimeout(window.resizedFinished);
+    window.resizedFinished = setTimeout(function(){
+      document.location.reload();
+      calculateRadius();
+    }, 500);
   };
 
   const calculateRadius = () => {
