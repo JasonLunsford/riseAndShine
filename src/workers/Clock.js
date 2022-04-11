@@ -1,7 +1,7 @@
-import { GetCurrentTime } from '../helpers/Helpers';
+import { GetTime } from '../helpers/Helpers';
 
 onmessage = () => {
     setInterval(() => {
-        postMessage(GetCurrentTime());
+        postMessage(GetTime());
     }, 1000);
 };

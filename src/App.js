@@ -3,8 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
 
 import {
-  FixTime,
-  GetCurrentTime,
+  GetTime,
   GetGeoData,
   GetWeatherData
 } from './helpers/Helpers';
@@ -26,7 +25,7 @@ const App = () => {
   const [geoData, setGeoData] = useState();
   const [weatherData, setWeatherData] = useState();
 
-  const [time, setTime] = useState(GetCurrentTime());
+  const [time, setTime] = useState(GetTime());
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -88,16 +87,6 @@ const App = () => {
 
     return Math.PI * (spentDaylightHours / daylightHours);
   };
-
-  const getTime = timestamp => {
-    const adjusted = new Date(timestamp * 1000);
-
-    const rawHours = adjusted.getHours();
-    const rawMinutes = adjusted.getMinutes();
-    let hours = FixTime(rawHours), minutes = FixTime(rawMinutes);
-    
-    return `${hours}:${minutes}`;
-  }
 
   const reload = () => {
     document.location.reload();
@@ -178,7 +167,7 @@ const App = () => {
         <div className={styles.TimeBox}>
           <div className={styles.MainTime}>{time}</div>
           <div>
-            {getTime(weatherData.sys.sunrise)} | {getTime(weatherData.sys.sunset)}
+            {GetTime(weatherData.sys.sunrise)} | {GetTime(weatherData.sys.sunset)}
           </div>
         </div>
       </div>

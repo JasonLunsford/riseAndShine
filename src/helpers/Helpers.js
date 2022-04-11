@@ -4,7 +4,7 @@ const _instance = axios.create({
   baseURL: 'http://api.openweathermap.org/'
 });
 
-const FixTime = value => {
+const _fixTime = value => {
     if (value < 10) {
         return '0' + value;
     }
@@ -12,12 +12,18 @@ const FixTime = value => {
     return value;
 };
 
-const GetCurrentTime = () => {
-    const now = new Date();
+const GetTime = (timestamp) => {
+    let time;
 
-    const rawHours = now.getHours();
-    const rawMinutes = now.getMinutes();
-    let hours = FixTime(rawHours), minutes = FixTime(rawMinutes);
+    if (timestamp) {
+        time = new Date(timestamp * 1000);
+    } else {
+        time = new Date();
+    }
+
+    const rawHours = time.getHours();
+    const rawMinutes = time.getMinutes();
+    let hours = _fixTime(rawHours), minutes = _fixTime(rawMinutes);
 
     return `${hours}:${minutes}`;
 };
@@ -35,8 +41,7 @@ const GetWeatherData = async geoData => {
 };
 
 export {
-    FixTime,
-    GetCurrentTime,
+    GetTime,
     GetGeoData,
     GetWeatherData
 }
