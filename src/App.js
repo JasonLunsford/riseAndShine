@@ -147,15 +147,10 @@ const App = () => {
       case 'Clouds':
         return styles.Clouds;
       case 'Thunderstorm':
-        return styles.Thunderstorm;
       case 'Drizzle':
-        return styles.Drizzle;
       case 'Rain':
-        return styles.Rain;
       case 'Snow':
-        return styles.Snow;
       case 'Fog':
-        return styles.Fog;
       default:
         return styles.Default;
     }
