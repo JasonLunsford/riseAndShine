@@ -13,6 +13,7 @@ import styles from './App.module.scss';
 
 const ClockWorker = new Worker(new URL('./workers/Clock.js', import.meta.url));
 const WeatherWorker = new Worker(new URL('./workers/Weather.js', import.meta.url));
+const AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
 const App = () => {
   const SunRef = useRef(null);
@@ -67,7 +68,12 @@ const App = () => {
 
   useEffect(() => {
     if (sunPath && !isRunning) {
-      startAnimation();
+      AnimationWorker.postMessage({ sunPath, origin, radius });
+      AnimationWorker.onmessage = ({ data: { position } }) => {
+        SunRef.current.style.left = position.left;
+        SunRef.current.style.top = position.top;
+      };
+
       setIsRunning(true);
     }
   }, [sunPath, isRunning]);
@@ -127,31 +133,12 @@ const App = () => {
 
     pathData.startAngle = Math.PI + offset; 
     pathData.endAngle = 0;
-    pathData.animationTime = 86400000; // 24 hours in milliseconds
+    pathData.animationTime = 86400000; // 86400000 = 24 hours in milliseconds
     pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
     pathData.start = false;
     pathData.curAngle = pathData.startAngle;
 
     setSunPath(pathData);
-  };
-
-  const startAnimation = () => {
-    if (!sunPath.start) {
-      sunPath.start = Date.now();
-      sunPath.now = Date.now();
-    }
-
-    const elapsed = Date.now() - sunPath.now;
-    sunPath.now = Date.now();
-    sunPath.curAngle += elapsed * sunPath.vector; 
- 
-    let x = radius * Math.cos(sunPath.curAngle);
-    let y = radius * Math.sin(sunPath.curAngle);
-
-    SunRef.current.style.left = (origin.x + x) + 'px';
-    SunRef.current.style.top = (origin.y + y) + 'px';
-
-    requestAnimationFrame(startAnimation);
   };
 
   const getWeatherIcon = () => {
