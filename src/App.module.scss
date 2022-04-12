@@ -11,7 +11,7 @@
   .Guide {
     border: 1px solid black;
     border-radius: 100%;
-    display: flex;
+    display: none;
     justify-content: center;
     position: absolute;
 
@@ -37,7 +37,7 @@
     align-items:       center;
     background-size:   cover;
     background-repeat: no-repeat;
-    display:           flex;
+    display:           none;
     height:            200px;
     justify-content:   center;
     position:          absolute;

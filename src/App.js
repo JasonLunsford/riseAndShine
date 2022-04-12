@@ -57,6 +57,9 @@ const App = () => {
 
   useEffect(() => {
     if (radius && weatherData) {
+      GuideRef.current.style.display = 'flex';
+      SunRef.current.style.display = 'flex';
+      
       const offset = calculateOffset();
 
       configureGuide();
