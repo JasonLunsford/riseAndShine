@@ -12,7 +12,7 @@ import styles from './App.module.scss';
 
 const ClockWorker = new Worker(new URL('./workers/Clock.js', import.meta.url));
 const WeatherWorker = new Worker(new URL('./workers/Weather.js', import.meta.url));
-const AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
+let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
 const App = () => {
   const SunRef = useRef(null);
@@ -26,7 +26,6 @@ const App = () => {
   const [weatherData, setWeatherData] = useState();
 
   const [time, setTime] = useState(GetTime());
-  const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
     GetGeoData().then(data => setGeoData(data));
@@ -45,7 +44,7 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (geoData) {
+    if (geoData && !weatherData) {
       GetWeatherData(geoData).then(data => setWeatherData(data));
 
       WeatherWorker.postMessage({ geoData });
@@ -53,7 +52,7 @@ const App = () => {
         setWeatherData(weatherWorkerData);
       };
     }
-  }, [geoData]);
+  }, [geoData, weatherData]);
 
   useEffect(() => {
     if (radius && weatherData) {
@@ -69,16 +68,14 @@ const App = () => {
   }, [radius, weatherData]);
 
   useEffect(() => {
-    if (sunPath && !isRunning) {
+    if (sunPath) {
       AnimationWorker.postMessage({ sunPath, origin, radius });
       AnimationWorker.onmessage = ({ data: { position } }) => {
         SunRef.current.style.left = position.left;
         SunRef.current.style.top = position.top;
       };
-
-      setIsRunning(true);
     }
-  }, [sunPath, isRunning]);
+  }, [sunPath]);
 
   const calculateOffset = () => {
     const sunrise = new Date(weatherData.sys.sunrise * 1000);
@@ -98,8 +95,13 @@ const App = () => {
     GuideRef.current.style.display = 'none';
 
     clearTimeout(window.resizedFinished);
-    window.resizedFinished = setTimeout(function(){
-      document.location.reload();
+    window.resizedFinished = setTimeout(() => {
+      AnimationWorker.postMessage({ closeInstance: true });
+      AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
+
+      SunRef.current.style.top = 0;
+      SunRef.current.style.left = 0;
+
       calculateRadius();
     }, 500);
   };
