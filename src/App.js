@@ -18,7 +18,8 @@ const App = () => {
   const SunRef = useRef(null);
   const GuideRef = useRef(null);
 
-  const [radius, setRadius] = useState();
+  const [refresh, setRefresh] = useState(true);
+
   const [origin, setOrigin] = useState();
   const [sunPath, setSunPath] = useState();
 
@@ -29,7 +30,6 @@ const App = () => {
 
   useEffect(() => {
     GetGeoData().then(data => setGeoData(data));
-    calculateRadius();
 
     window.addEventListener('resize', reload, false);
 
@@ -50,29 +50,36 @@ const App = () => {
       WeatherWorker.postMessage({ geoData });
       WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
         setWeatherData(weatherWorkerData);
+        setRefresh(true);
       };
     }
   }, [geoData, weatherData]);
 
   useEffect(() => {
-    if (radius && weatherData) {
-      GuideRef.current.style.display = 'flex';
-      SunRef.current.style.display = 'flex';
-      
+    if (refresh && weatherData) {
+      resetAnimationWorker();
+            
+      const radius = calculateRadius();
       const offset = calculateOffset();
 
-      configureGuide();
+      configureGuide(radius);
       calculateOrigin();
       configureSunPath(offset);
+
+      setRefresh(false);
     }
-  }, [radius, weatherData]);
+  }, [refresh, weatherData]);
 
   useEffect(() => {
     if (sunPath) {
+      const radius = calculateRadius();
+
       AnimationWorker.postMessage({ sunPath, origin, radius });
       AnimationWorker.onmessage = ({ data: { position } }) => {
         SunRef.current.style.left = position.left;
         SunRef.current.style.top = position.top;
+        GuideRef.current.style.visibility = 'visible';
+        SunRef.current.style.visibility = 'visible';
       };
     }
   }, [sunPath]);
@@ -88,29 +95,31 @@ const App = () => {
     return Math.PI * (spentDaylightHours / daylightHours);
   };
 
-  // Simple technique to detect "end" of resizing event, allows repainting
-  // once user has finished resizing
-  const reload = () => {
-    SunRef.current.style.display = 'none';
-    GuideRef.current.style.display = 'none';
-
-    clearTimeout(window.resizedFinished);
-    window.resizedFinished = setTimeout(() => {
-      AnimationWorker.postMessage({ closeInstance: true });
+  const resetAnimationWorker = () => {
+      AnimationWorker.terminate();
       AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
       SunRef.current.style.top = 0;
       SunRef.current.style.left = 0;
+  }
 
-      calculateRadius();
+  // Simple technique to detect "end" of resizing event, allows repainting
+  // once user has finished resizing
+  const reload = () => {
+    SunRef.current.style.visibility = 'hidden';
+    GuideRef.current.style.visibility = 'hidden';
+
+    clearTimeout(window.resizedFinished);
+    window.resizedFinished = setTimeout(() => {
+      setRefresh(true);
     }, 500);
   };
 
   const calculateRadius = () => {
-    setRadius(window.innerWidth * .3);
+    return window.innerWidth * .3;
   };
 
-  const configureGuide = () => {
+  const configureGuide = radius => {
     GuideRef.current.style.top = 'calc(100% - ' + radius + 'px)';
     GuideRef.current.style.left = 'calc(50% - ' + radius + 'px)';
     GuideRef.current.style.width = radius * 2 +'px';

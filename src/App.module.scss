@@ -9,11 +9,12 @@
   width:            100%;
 
   .Guide {
-    border: 1px solid black;
-    border-radius: 100%;
-    display: none;
+    border:          1px solid black;
+    border-radius:   100%;
+    display:         flex;
     justify-content: center;
-    position: absolute;
+    position:        absolute;
+    visibility:      hidden;
 
     .TimeBox {
       color:    #000;
@@ -37,11 +38,12 @@
     align-items:       center;
     background-size:   cover;
     background-repeat: no-repeat;
-    display:           none;
+    display:           flex;
     height:            200px;
     justify-content:   center;
     position:          absolute;
     width:             200px;
+    visibility:        hidden;
     z-index:           10;
 
     span {

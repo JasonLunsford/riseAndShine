@@ -1,12 +1,5 @@
-onmessage = ({ data: { sunPath, origin, radius, closeInstance = false } }) => {
-    let myReq;
-
-    if (closeInstance) {
-        cancelAnimationFrame(myReq);
-        global.close();
-    } else {
-        myReq = requestAnimationFrame(() => startAnimation(postMessage, origin, sunPath, radius));
-    }
+onmessage = ({ data: { sunPath, origin, radius } }) => {
+    startAnimation(postMessage, origin, sunPath, radius)
 };
 
 const startAnimation = (postMessage, origin, sunPath, radius) => {
