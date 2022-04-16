@@ -4,7 +4,7 @@ onmessage = ({ data: { sunPath, origin, radius } }) => {
 
 const startAnimation = (postMessage, origin, sunPath, radius) => {
     if (!sunPath.start) {
-        sunPath.start = Date.now();
+        sunPath.start = true;
         sunPath.now = Date.now();
     }
 
