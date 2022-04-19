@@ -57,10 +57,18 @@
 
   .Clouds {
     background-image: url('./assets/Cloudy.svg');
+
+    span {
+      margin-top: 55px;
+    }
   }
 
   .Thunderstorm {
     background-image: url('./assets/Thunderstorm.svg');
+
+    span {
+      margin-bottom: 35px;
+    }
   }
 
   .Drizzle {
@@ -73,6 +81,10 @@
 
   .Rain {
     background-image: url('./assets/Rain.svg');
+
+    span {
+      margin-bottom: 35px;
+    }
   }
 
   .LightSnow{
@@ -85,18 +97,35 @@
 
   .Snow {
     background-image: url('./assets/Snow.svg');
+
+    span {
+      margin-bottom: 25px;
+    }
   }
 
   .Fog {
     background-image: url('./assets/Fog.svg');
+
+    span {
+      margin-bottom: 25px;
+    }
   }
 
   .Tornado {
     background-image: url('./assets/Tornado.svg');
+
+    span {
+      margin-bottom: 35px;
+    }
   }
 
   .Windy {
     background-image: url('./assets/Windy.svg');
+
+    span {
+      margin-bottom: 8px;
+      margin-right:  36px;
+    }
   }
 
   .Default {
