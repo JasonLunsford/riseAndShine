@@ -84,13 +84,38 @@ const App = () => {
     }
   }, [sunPath]);
 
-  const calculateOffset = () => {
-    const sunrise = new Date(weatherData.sys.sunrise * 1000);
-    const sunset = new Date(weatherData.sys.sunset * 1000);
+  const calculateDaylightHours = data => {
+    const sunrise = new Date(data.sys.sunrise * 1000);
+    const sunset = new Date(data.sys.sunset * 1000);
+
+    return Math.abs((sunset - sunrise) / (1000 * 60 * 60));    
+  };
+
+  const calculateSpentHours = data => {
+    const sunrise = new Date(data.sys.sunrise * 1000);
     const now = new Date();
 
-    const daylightHours = Math.abs((sunset - sunrise) / (1000 * 60 * 60));
-    const spentDaylightHours = Math.abs((now - sunrise) / (1000 * 60 * 60));
+    return Math.abs((now - sunrise) / (1000 * 60 * 60));
+  }
+
+  const calculateYShift = (data, curRadius) => {
+    const daylightHours = calculateDaylightHours(data);
+    // percent change of daylight from the base state of 12 hr / day.
+    const percentShift = (daylightHours - 12) / 12;
+
+    // Arc change in radians
+    const arcDelta = (2 * Math.PI * curRadius) * percentShift;
+
+    // Calculate angle
+    const angle = arcDelta / ((Math.PI / 180) * curRadius)
+
+    // curRadius is adjacent side, so multiply it by tan of arc
+    return curRadius * Math.tan(angle);
+  }
+
+  const calculateOffset = () => {
+    const daylightHours = calculateDaylightHours(weatherData);
+    const spentDaylightHours = calculateSpentHours(weatherData);
 
     return Math.PI * (spentDaylightHours / daylightHours);
   };
@@ -120,6 +145,8 @@ const App = () => {
   };
 
   const configureGuide = radius => {
+    //const topShift = calculateYShift(weatherData, radius);
+
     GuideRef.current.style.top = 'calc(100% - ' + radius + 'px)';
     GuideRef.current.style.left = 'calc(50% - ' + radius + 'px)';
     GuideRef.current.style.width = radius * 2 +'px';
@@ -153,18 +180,29 @@ const App = () => {
   };
 
   const getWeatherIcon = () => {
-    const condition = weatherData.weather[0].main;
+    const { main, id } = weatherData.weather[0];
 
-    switch (condition) {
-      case 'Clear':
+    switch (main.toLowerCase()) {
+      case 'clear':
         return styles.Clear;
-      case 'Clouds':
+      case 'clouds':
         return styles.Clouds;
-      case 'Thunderstorm':
-      case 'Drizzle':
-      case 'Rain':
-      case 'Snow':
-      case 'Fog':
+      case 'thunderstorm':
+        return styles.Thunderstorm;
+      case 'tornado':
+        return styles.Tornado;
+      case 'drizzle':
+      case 'mist':
+        return styles.Drizzle;
+      case 'rain':
+        return styles.Rain;
+      case 'snow':
+        if (id === 600) return styles.LightSnow
+        return styles.Snow;
+      case 'fog':
+        return styles.Fog;
+      case 'windy':
+        return styles.Windy;
       default:
         return styles.Default;
     }
