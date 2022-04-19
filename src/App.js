@@ -29,7 +29,17 @@ const App = () => {
   const [time, setTime] = useState(GetTime());
 
   useEffect(() => {
-    GetGeoData().then(data => setGeoData(data));
+    GetGeoData().then(gData => {
+      setGeoData(gData);
+
+      GetWeatherData(gData).then(wData => setWeatherData(wData));
+
+      WeatherWorker.postMessage({ gData });
+      WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
+        setWeatherData(weatherWorkerData);
+        setRefresh(true);
+      };
+    });
 
     window.addEventListener('resize', reload, false);
 
@@ -42,18 +52,6 @@ const App = () => {
       window.removeEventListener('resize', reload);
     };
   }, []);
-
-  useEffect(() => {
-    if (geoData && !weatherData) {
-      GetWeatherData(geoData).then(data => setWeatherData(data));
-
-      WeatherWorker.postMessage({ geoData });
-      WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
-        setWeatherData(weatherWorkerData);
-        setRefresh(true);
-      };
-    }
-  }, [geoData, weatherData]);
 
   useEffect(() => {
     if (refresh && weatherData) {
@@ -101,16 +99,17 @@ const App = () => {
   const calculateYShift = (data, curRadius) => {
     const daylightHours = calculateDaylightHours(data);
     // percent change of daylight from the base state of 12 hr / day.
-    const percentShift = (daylightHours - 12) / 12;
+    const shiftRatio = (daylightHours - 12) / 24;
 
-    // Arc change in radians
-    const arcDelta = (2 * Math.PI * curRadius) * percentShift;
+    // Arc change in pixels, divided by 2 to represent both sides of the
+    // circle
+    const arcDelta = ((2 * Math.PI * curRadius) * shiftRatio) / 2;
 
-    // Calculate angle
-    const angle = arcDelta / ((Math.PI / 180) * curRadius)
+    // Calculate angle in radians
+    const angle = arcDelta / curRadius;
 
-    // curRadius is adjacent side, so multiply it by tan of arc
-    return curRadius * Math.tan(angle);
+    // Calculate length of line crossing the circle at two points
+    return 2 * curRadius * Math.sin(angle / 2);
   }
 
   const calculateOffset = () => {
@@ -145,9 +144,10 @@ const App = () => {
   };
 
   const configureGuide = radius => {
-    //const topShift = calculateYShift(weatherData, radius);
+    const seasonShift = calculateYShift(weatherData, radius);
+    const adjustedRadius = radius + seasonShift;
 
-    GuideRef.current.style.top = 'calc(100% - ' + radius + 'px)';
+    GuideRef.current.style.top = 'calc(100% - ' + adjustedRadius + 'px)';
     GuideRef.current.style.left = 'calc(50% - ' + radius + 'px)';
     GuideRef.current.style.width = radius * 2 +'px';
     GuideRef.current.style.height = radius * 2 +'px';
