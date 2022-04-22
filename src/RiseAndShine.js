@@ -21,8 +21,6 @@ const RiseAndShine = () => {
     const [guideVisible, setGuideVisible] = useState('hidden');
     const [guideDimensions, setGuideDimensions] = useState();
 
-    const [iconVisible, setIconVisible] = useState('hidden');
-
     const [geoData, setGeoData] = useState();
     const [weatherData, setWeatherData] = useState();
 
@@ -34,7 +32,6 @@ const RiseAndShine = () => {
             setGeoData(gData);
             setWeatherData(wData);
             setGuideVisible('visible');
-            setIconVisible('visible');
 
             WeatherWorker.postMessage({ gData });
             WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
@@ -52,13 +49,12 @@ const RiseAndShine = () => {
     }, []);
 
     const resize = () => {
-        setIconVisible('hidden');
         setRadius(CalculateRadius());
 
         clearTimeout(window.resizedFinished);
 
         window.resizedFinished = setTimeout(() => {
-            setIconVisible('visible');
+
         }, 500);
     };
 
@@ -79,7 +75,6 @@ const RiseAndShine = () => {
             <TravelingIcon
                 guideDimensions={guideDimensions}
                 radius={radius}
-                visibility={iconVisible}
                 weatherData={weatherData}
             />
             <TimeBoxes

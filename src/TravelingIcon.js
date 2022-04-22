@@ -17,19 +17,20 @@ let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.u
 const TravelingIcon = ({
     guideDimensions,
     radius,
-    visibility,
     weatherData
 }) => {
     const TravelingIconRef = useRef(null);
 
     useEffect(() => {
         if (weatherData && radius && guideDimensions) {
+            TravelingIconRef.current.style.visibility = 'hidden';
+            
             resetAnimationWorker();
-            initTravelingIcon(weatherData, radius, guideDimensions, visibility);
+            initTravelingIcon(weatherData, radius, guideDimensions);
         }
-    }, [guideDimensions, radius, weatherData, visibility]);
+    }, [guideDimensions, radius, weatherData]);
 
-    const initTravelingIcon = (data, radius, dimensions, visibility) => {
+    const initTravelingIcon = (data, radius, dimensions) => {
         const iconDimensions = TravelingIconRef.current.getBoundingClientRect();
 
         const offSet = CalculateOffset(data);
@@ -42,7 +43,7 @@ const TravelingIcon = ({
             TravelingIconRef.current.style.left = position.left;
             TravelingIconRef.current.style.top = position.top;
 
-            TravelingIconRef.current.style.visibility = visibility;
+            TravelingIconRef.current.style.visibility = 'visible';
         };
     };
 
