@@ -8,20 +8,24 @@ import {
   GetWeatherData
 } from './helpers/Helpers';
 
+import TravelingIcon from './TravelingIcon';
+
 import styles from './App.module.scss';
+
+//const ANIMATION_TIME = 86400000; // 86400000 = 24 hours in milliseconds
 
 const ClockWorker = new Worker(new URL('./workers/Clock.js', import.meta.url));
 const WeatherWorker = new Worker(new URL('./workers/Weather.js', import.meta.url));
-let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
+//let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
 const App = () => {
-  const SunRef = useRef(null);
+  //const SunRef = useRef(null);
   const GuideRef = useRef(null);
 
   const [refresh, setRefresh] = useState(true);
 
   const [origin, setOrigin] = useState();
-  const [sunPath, setSunPath] = useState();
+  //const [sunPath, setSunPath] = useState();
 
   const [geoData, setGeoData] = useState();
   const [weatherData, setWeatherData] = useState();
@@ -55,32 +59,32 @@ const App = () => {
 
   useEffect(() => {
     if (refresh && weatherData) {
-      resetAnimationWorker();
+      //resetAnimationWorker();
             
       const radius = calculateRadius();
-      const offset = calculateOffset();
+      //const offset = calculateOffset();
 
       configureGuide(radius);
       calculateOrigin();
-      configureSunPath(offset);
+      //configureSunPath(offset, radius);
 
       setRefresh(false);
     }
   }, [refresh, weatherData]);
 
-  useEffect(() => {
-    if (sunPath) {
-      const radius = calculateRadius();
+  // useEffect(() => {
+  //   if (sunPath) {
+  //     const radius = calculateRadius();
 
-      AnimationWorker.postMessage({ sunPath, origin, radius });
-      AnimationWorker.onmessage = ({ data: { position } }) => {
-        SunRef.current.style.left = position.left;
-        SunRef.current.style.top = position.top;
-        GuideRef.current.style.visibility = 'visible';
-        SunRef.current.style.visibility = 'visible';
-      };
-    }
-  }, [sunPath]);
+  //     AnimationWorker.postMessage({ sunPath, origin, radius });
+  //     AnimationWorker.onmessage = ({ data: { position } }) => {
+  //         SunRef.current.style.left = position.left;
+  //         SunRef.current.style.top = position.top;
+  //         GuideRef.current.style.visibility = 'visible';
+  //         SunRef.current.style.visibility = 'visible';
+  //     };
+  //   }
+  // }, [sunPath]);
 
   const calculateDaylightHours = data => {
     const sunrise = new Date(data.sys.sunrise * 1000);
@@ -96,21 +100,38 @@ const App = () => {
     return Math.abs((now - sunrise) / (1000 * 60 * 60));
   }
 
-  const calculateYShift = (data, curRadius) => {
+  const calculateShiftRatio = daylightHours => {
+    return (daylightHours - 12) / 24;
+  }
+
+  const calculateArcDelta = (curRadius, shiftRatio) => {
+    return ((2 * Math.PI * curRadius) * shiftRatio) / 2;
+  }
+
+  const calculateDeltaAngle = (curRadius, arcDelta) => {
+    return arcDelta / curRadius;
+  }
+
+  const calculateCurrentAngleDelta = (data, curRadius) => {
     const daylightHours = calculateDaylightHours(data);
+
     // percent change of daylight from the base state of 12 hr / day.
-    const shiftRatio = (daylightHours - 12) / 24;
+    const shiftRatio = calculateShiftRatio(daylightHours);
 
     // Arc change in pixels, divided by 2 to represent both sides of the
     // circle
-    const arcDelta = ((2 * Math.PI * curRadius) * shiftRatio) / 2;
+    const arcDelta = calculateArcDelta(curRadius, shiftRatio);
 
-    // Calculate angle in radians
-    const angle = arcDelta / curRadius;
+    // return calculated angle in radians
+    return calculateDeltaAngle(curRadius, arcDelta);
+  };
+
+  const calculateYShift = (data, curRadius) => {
+    const angle = calculateCurrentAngleDelta(data, curRadius);
 
     // Calculate length of line crossing the circle at two points
     return 2 * curRadius * Math.sin(angle / 2);
-  }
+  };
 
   const calculateOffset = () => {
     const daylightHours = calculateDaylightHours(weatherData);
@@ -119,18 +140,18 @@ const App = () => {
     return Math.PI * (spentDaylightHours / daylightHours);
   };
 
-  const resetAnimationWorker = () => {
-      AnimationWorker.terminate();
-      AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
+  // const resetAnimationWorker = () => {
+  //     AnimationWorker.terminate();
+  //     AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
-      SunRef.current.style.top = 0;
-      SunRef.current.style.left = 0;
-  }
+  //     SunRef.current.style.top = 0;
+  //     SunRef.current.style.left = 0;
+  // }
 
   // Simple technique to detect "end" of resizing event, allows repainting
   // once user has finished resizing
   const reload = () => {
-    SunRef.current.style.visibility = 'hidden';
+    //SunRef.current.style.visibility = 'hidden';
     GuideRef.current.style.visibility = 'hidden';
 
     clearTimeout(window.resizedFinished);
@@ -166,64 +187,63 @@ const App = () => {
     });
   };
 
-  const configureSunPath = (offset = 0) => {
-    let pathData = {};
+  // const configureSunPath = (offset = 0, radius) => {
+  //   const angle = calculateCurrentAngleDelta(weatherData, radius);
 
-    pathData.startAngle = Math.PI + offset; 
-    pathData.endAngle = 0;
-    pathData.animationTime = 86400000; // 86400000 = 24 hours in milliseconds
-    pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
-    pathData.start = false;
-    pathData.curAngle = pathData.startAngle;
+  //   let pathData = {};
 
-    setSunPath(pathData);
-  };
+  //   pathData.startAngle = Math.PI + offset;
+  //   pathData.endAngle = 0 + angle;
+  //   pathData.animationTime = ANIMATION_TIME;
+  //   pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
+  //   pathData.start = false;
+  //   pathData.curAngle = pathData.startAngle;
 
-  const getWeatherIcon = () => {
-    const { main, id } = weatherData.weather[0];
+  //   setSunPath(pathData);
+  // };
 
-    switch (main.toLowerCase()) {
-      case 'clear':
-        return styles.Clear;
-      case 'clouds':
-        return styles.Clouds;
-      case 'thunderstorm':
-        return styles.Thunderstorm;
-      case 'tornado':
-        return styles.Tornado;
-      case 'drizzle':
-      case 'mist':
-        return styles.Drizzle;
-      case 'rain':
-        return styles.Rain;
-      case 'snow':
-        if (id === 600) return styles.LightSnow
-        return styles.Snow;
-      case 'fog':
-        return styles.Fog;
-      case 'windy':
-        return styles.Windy;
-      default:
-        return styles.Default;
-    }
-  }
+  // const getWeatherIcon = () => {
+  //   const { main, id } = weatherData.weather[0];
+
+  //   switch (main.toLowerCase()) {
+  //     case 'clear':
+  //       return styles.Clear;
+  //     case 'clouds':
+  //       return styles.Clouds;
+  //     case 'thunderstorm':
+  //       return styles.Thunderstorm;
+  //     case 'tornado':
+  //       return styles.Tornado;
+  //     case 'drizzle':
+  //     case 'mist':
+  //       return styles.Drizzle;
+  //     case 'rain':
+  //       return styles.Rain;
+  //     case 'snow':
+  //       if (id === 600) return styles.LightSnow
+  //       return styles.Snow;
+  //     case 'fog':
+  //       return styles.Fog;
+  //     case 'windy':
+  //       return styles.Windy;
+  //     default:
+  //       return styles.Default;
+  //   }
+  // }
 
   if (!weatherData) return null;
 
   return (
     <div className={styles.App}>
-      <div
-        className={clsx(styles.BaseIcon, getWeatherIcon())}
-        ref={SunRef}
-      >
-        <span>{Math.round(weatherData.main.temp)}&deg;F</span>
-      </div>
-      <div className={styles.Guide} ref={GuideRef}>
-        <div className={styles.TimeBox}>
-          <div className={styles.MainTime}>{time}</div>
-          <div>
-            {GetTime(weatherData.sys.sunrise)} | {GetTime(weatherData.sys.sunset)}
-          </div>
+      <TravelingIcon
+        origin={origin}
+        weatherData={weatherData}
+      />
+      <div className={styles.Guide} ref={GuideRef} />
+      <div className={styles.TimeBox}>
+        <div className={styles.MainTime}>{time}</div>
+        <div>
+          {GetTime(weatherData.sys.sunrise)} | {GetTime(weatherData.sys.sunset)}
         </div>
       </div>
     </div>
