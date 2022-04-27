@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import clsx from 'clsx';
 
@@ -10,7 +10,7 @@ import {
 
 import styles from './TravelingIcon.module.scss';
 
-const ANIMATION_TIME = 86400000; // 86400000 = 24 hours in milliseconds
+const ANIMATION_TIME = 43200000; // 43200000 = 12 hours in milliseconds
 
 let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
@@ -24,7 +24,7 @@ const TravelingIcon = ({
     useEffect(() => {
         if (weatherData && radius && guideDimensions) {
             TravelingIconRef.current.style.visibility = 'hidden';
-            
+
             resetAnimationWorker();
             initTravelingIcon(weatherData, radius, guideDimensions);
         }

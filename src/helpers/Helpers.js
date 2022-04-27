@@ -40,9 +40,25 @@ const GetWeatherData = async geoData => {
     return data;
 };
 
+const CalculateNearestHour = () => {
+    const now = new Date();
+    const next = new Date();
+    const currentHour = now.getHours();
+    const currentMinutes = now.getMinutes();
+
+    next.setHours(currentHour + Math.round(currentMinutes / 60));
+    next.setMinutes(0, 0, 0);
+
+    return Math.abs(next - now);
+}
+
 const CalculateOffset = data => {
     const daylightHours = CalculateDaylightHours(data);
     const spentDaylightHours = CalculateSpentHours(data);
+
+    if (spentDaylightHours <= 0 || spentDaylightHours > daylightHours) {
+        return 0;
+    }
 
     return Math.PI * (spentDaylightHours / daylightHours);
 };
@@ -109,6 +125,7 @@ const CalculateYShift = (data, curRadius) => {
 };
 
 export {
+    CalculateNearestHour,
     CalculateOffset,
     CalculateDaylightHours,
     CalculateSpentHours,

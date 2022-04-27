@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import {
+    CalculateNearestHour,
     CalculateRadius,
     GetGeoData,
     GetWeatherData
@@ -27,13 +28,21 @@ const RiseAndShine = () => {
     useEffect(() => {
         const init = async () => {
             const gData = await GetGeoData();
-            const wData = await GetWeatherData(gData);
+            let wData = await GetWeatherData(gData);
+
+            const nextCheck = CalculateNearestHour();
 
             setGeoData(gData);
             setWeatherData(wData);
             setGuideVisible('visible');
 
-            WeatherWorker.postMessage({ gData });
+            setTimeout(async () => {
+                wData = await GetWeatherData(gData);
+                setWeatherData(wData);
+
+                WeatherWorker.postMessage({ gData });
+            }, nextCheck);
+
             WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
                 setWeatherData(weatherWorkerData);
             };
