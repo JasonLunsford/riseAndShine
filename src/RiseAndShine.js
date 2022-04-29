@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 
+import clsx from 'clsx';
+
 import {
     CalculateNearestHour,
     CalculateRadius,
+    ConditionMap,
     GetGeoData,
     GetWeatherData
 } from './helpers/Helpers';
@@ -30,22 +33,9 @@ const RiseAndShine = () => {
             const gData = await GetGeoData();
             let wData = await GetWeatherData(gData);
 
-            const nextCheck = CalculateNearestHour();
-
             setGeoData(gData);
             setWeatherData(wData);
             setGuideVisible('visible');
-
-            setTimeout(async () => {
-                wData = await GetWeatherData(gData);
-                setWeatherData(wData);
-
-                WeatherWorker.postMessage({ gData });
-            }, nextCheck);
-
-            WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
-                setWeatherData(weatherWorkerData);
-            };
         };
 
         init();
@@ -56,6 +46,27 @@ const RiseAndShine = () => {
             window.removeEventListener('resize', resize);
         }
     }, []);
+
+    useEffect(() => {
+        const startProcess = async () => {
+            const nextCheck = CalculateNearestHour();
+
+            setTimeout(async () => {
+                const wData = await GetWeatherData(geoData);
+                setWeatherData(wData);
+
+                WeatherWorker.postMessage({ geoData });
+            }, nextCheck);
+
+            WeatherWorker.onmessage = ({ data: { weatherWorkerData } }) => {
+                setWeatherData(weatherWorkerData);
+            };
+        };
+
+        if (geoData) {
+            startProcess();
+        }
+    }, [geoData])
 
     const resize = () => {
         setRadius(CalculateRadius());
@@ -71,10 +82,21 @@ const RiseAndShine = () => {
         setGuideDimensions(guideRef.getBoundingClientRect());
     };
 
+    const getBackground = () => {
+        const { id, main } = weatherData.weather[0];
+
+        const fixMain = main.toLowerCase();
+        const map = ConditionMap(id, styles);
+
+        if (Object.keys(map).includes(fixMain)) return map[fixMain];
+
+        return map['default'];
+    };
+
     if (!weatherData) return null;
 
     return (
-        <div className={styles.RiseAndShine} >
+        <div className={clsx(styles.RiseAndShine, getBackground())} >
             <Guide
                 onGuideInit={handleGuideInit}
                 radius={radius}

@@ -1,7 +1,5 @@
 .RiseAndShine {
     align-items:      flex-end;
-    background-color: #045de9;
-    background-image: linear-gradient(315deg, #045de9 0%, #09c6f9 74%);
     display:          flex;
     height:           100vh;
     left:             0;
@@ -9,4 +7,43 @@
     position:         fixed;
     top:              0;
     width:            100%;
+}
+
+.Clear {
+    background-color: #045de9;
+    background-image: linear-gradient(315deg, #045de9 0%, #09c6f9 74%);
+}
+
+.Clouds {
+    background-color: #b8c6db;
+    background-image: linear-gradient(315deg, #b8c6db 0%, #f5f7fa 74%);
+}
+
+.Thunderstorm,
+.Tornado {
+    background-color: #000000;
+    background-image: linear-gradient(180deg, #000000 25%, #414141 74%);
+}
+
+.Drizzle {
+    background-color: #cfd6e6;
+    background-image: linear-gradient(180deg, #e7eff9 0%, #cfd6e6 74%);
+}
+
+.Rain {
+    background-color: #7f8c8d;
+    background-image: linear-gradient(180deg, #7f8c8d 0%, #d3d3d3 74%);
+}
+
+.LightSnow {
+    background-color: #ffffff;
+    background-image: linear-gradient(180deg, #ffffff 0%, #d7e1ec 74%);
+}
+
+.Snow,
+.Fog,
+.Windy,
+.Default {
+    background-color: #d7e1ec;
+    background-image: linear-gradient(180deg, #d7e1ec 0%, #d9d9d9 74%);
 }

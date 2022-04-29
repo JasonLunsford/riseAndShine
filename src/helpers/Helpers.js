@@ -40,6 +40,22 @@ const GetWeatherData = async geoData => {
     return data;
 };
 
+const ConditionMap = (id = 0, styles) => {
+    return ({
+        'clear': styles.Clear,
+        'clouds': styles.Clouds,
+        'thunderstorm': styles.Thunderstorm,
+        'tornado': styles.Tornado,
+        'drizzle': styles.Drizzle,
+        'mist': styles.Drizzle,
+        'rain': styles.Rain,
+        'snow': (id === 600) ? styles.LightSnow : styles.Snow,
+        'fog': styles.Fog,
+        'windy': styles.Windy,
+        'default': styles.Default
+    });
+}
+
 const CalculateNearestHour = () => {
     const now = new Date();
     const next = new Date();
@@ -136,6 +152,7 @@ export {
     CalculateOrigin,
     CalculateRadius,
     CalculateYShift,
+    ConditionMap,
     GetTime,
     GetGeoData,
     GetWeatherData

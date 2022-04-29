@@ -5,7 +5,8 @@ import clsx from 'clsx';
 import {
     CalculateOffset,
     CalculateCurrentAngleDelta,
-    CalculateOrigin
+    CalculateOrigin,
+    ConditionMap
 } from './helpers/Helpers';
 
 import styles from './TravelingIcon.module.scss';
@@ -71,32 +72,14 @@ const TravelingIcon = ({
     };
 
     const getWeatherIcon = () => {
-        const { main, id } = weatherData.weather[0];
+        const { id, main } = weatherData.weather[0];
 
-        switch (main.toLowerCase()) {
-            case 'clear':
-                return styles.Clear;
-            case 'clouds':
-                return styles.Clouds;
-            case 'thunderstorm':
-                return styles.Thunderstorm;
-            case 'tornado':
-                return styles.Tornado;
-            case 'drizzle':
-            case 'mist':
-                return styles.Drizzle;
-            case 'rain':
-                return styles.Rain;
-            case 'snow':
-                if (id === 600) return styles.LightSnow
-                return styles.Snow;
-            case 'fog':
-                return styles.Fog;
-            case 'windy':
-                return styles.Windy;
-            default:
-                return styles.Default;
-        }
+        const fixMain = main.toLowerCase();
+        const map = ConditionMap(id, styles);
+
+        if (Object.keys(map).includes(fixMain)) return map[fixMain];
+
+        return map['default'];
     };
 
     return (
