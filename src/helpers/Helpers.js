@@ -1,5 +1,45 @@
 import axios from 'axios';
 
+const _calculateArcDelta = (curRadius, shiftRatio) => {
+    return ((2 * Math.PI * curRadius) * shiftRatio) / 2;
+}
+
+const _calculateDaylightHours = data => {
+    const sunrise = new Date(data.sys.sunrise * 1000);
+    const sunset = new Date(data.sys.sunset * 1000);
+
+    return Math.abs((sunset - sunrise) / (1000 * 60 * 60));
+};
+
+const _calculateDeltaAngle = (curRadius, arcDelta) => {
+    return arcDelta / curRadius;
+}
+
+const _calculateShiftRatio = daylightHours => {
+    return (daylightHours - 12) / 24;
+}
+
+const _calculateSpentHours = data => {
+    const sunrise = new Date(data.sys.sunrise * 1000);
+    const now = new Date();
+
+    return Math.abs((now - sunrise) / (1000 * 60 * 60));
+}
+
+const _calculateCurrentAngleDelta = (data, curRadius) => {
+    const daylightHours = _calculateDaylightHours(data);
+
+    // percent change of daylight from the base state of 12 hr / day.
+    const shiftRatio = _calculateShiftRatio(daylightHours);
+
+    // Arc change in pixels, divided by 2 to represent both sides of the
+    // circle
+    const arcDelta = _calculateArcDelta(curRadius, shiftRatio);
+
+    // return calculated angle in radians
+    return _calculateDeltaAngle(curRadius, arcDelta);
+};
+
 const _instance = axios.create({
   baseURL: 'http://api.openweathermap.org/'
 });
@@ -12,7 +52,7 @@ const _fixTime = value => {
     return value;
 };
 
-const GetTime = (timestamp) => {
+const GetTime = timestamp => {
     let time;
 
     if (timestamp) {
@@ -69,54 +109,14 @@ const CalculateNearestHour = () => {
 }
 
 const CalculateOffset = data => {
-    const daylightHours = CalculateDaylightHours(data);
-    const spentDaylightHours = CalculateSpentHours(data);
+    const daylightHours = _calculateDaylightHours(data);
+    const spentDaylightHours = _calculateSpentHours(data);
 
     if (spentDaylightHours <= 0 || spentDaylightHours > daylightHours) {
         return 0;
     }
 
     return Math.PI * (spentDaylightHours / daylightHours);
-};
-
-const CalculateDaylightHours = data => {
-    const sunrise = new Date(data.sys.sunrise * 1000);
-    const sunset = new Date(data.sys.sunset * 1000);
-
-    return Math.abs((sunset - sunrise) / (1000 * 60 * 60));
-};
-
-const CalculateSpentHours = data => {
-    const sunrise = new Date(data.sys.sunrise * 1000);
-    const now = new Date();
-
-    return Math.abs((now - sunrise) / (1000 * 60 * 60));
-}
-
-const CalculateShiftRatio = daylightHours => {
-    return (daylightHours - 12) / 24;
-}
-
-const CalculateArcDelta = (curRadius, shiftRatio) => {
-    return ((2 * Math.PI * curRadius) * shiftRatio) / 2;
-}
-
-const CalculateDeltaAngle = (curRadius, arcDelta) => {
-    return arcDelta / curRadius;
-}
-
-const CalculateCurrentAngleDelta = (data, curRadius) => {
-    const daylightHours = CalculateDaylightHours(data);
-
-    // percent change of daylight from the base state of 12 hr / day.
-    const shiftRatio = CalculateShiftRatio(daylightHours);
-
-    // Arc change in pixels, divided by 2 to represent both sides of the
-    // circle
-    const arcDelta = CalculateArcDelta(curRadius, shiftRatio);
-
-    // return calculated angle in radians
-    return CalculateDeltaAngle(curRadius, arcDelta);
 };
 
 const CalculateOrigin = (guideDimensions, iconDimensions) => {
@@ -134,21 +134,35 @@ const CalculateRadius = () => {
 };
 
 const CalculateYShift = (data, curRadius) => {
-    const angle = CalculateCurrentAngleDelta(data, curRadius);
+    const angle = _calculateCurrentAngleDelta(data, curRadius);
 
     // Calculate length of line crossing the circle at two points
     return 2 * curRadius * Math.sin(angle / 2);
 };
 
+const CalculateCurrentAngle = radius => {
+    const d = new Date(), e = new Date(d);
+    const msSinceMidnight = e - d.setHours(0,0,0,0);
+    const ratio = msSinceMidnight / 86400000;
+
+    // Full circle's worth of radius * clock ratio, shifted down to
+    // "bottom" of the circle (where midnight is).
+    return ((Math.PI * 2) * ratio) + (Math.PI / 2);
+}
+
+const CalculateOneHourAheadAngle = radius => {
+    const d = new Date(), e = new Date(d);
+    const msSinceMidnight = (e - d.setHours(0,0,0,0)) + 3600000;
+    const ratio = msSinceMidnight / 86400000;
+
+    return ((Math.PI * 2) * ratio) + (Math.PI / 2);
+}
+
 export {
+    CalculateOneHourAheadAngle,
+    CalculateCurrentAngle,
     CalculateNearestHour,
     CalculateOffset,
-    CalculateDaylightHours,
-    CalculateSpentHours,
-    CalculateShiftRatio,
-    CalculateArcDelta,
-    CalculateDeltaAngle,
-    CalculateCurrentAngleDelta,
     CalculateOrigin,
     CalculateRadius,
     CalculateYShift,

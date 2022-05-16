@@ -3,15 +3,16 @@ import { useEffect, useRef } from 'react';
 import clsx from 'clsx';
 
 import {
+    CalculateOneHourAheadAngle,
+    CalculateCurrentAngle,
     CalculateOffset,
-    CalculateCurrentAngleDelta,
     CalculateOrigin,
     ConditionMap
 } from './helpers/Helpers';
 
 import styles from './TravelingIcon.module.scss';
 
-const ANIMATION_TIME = 43200000; // 43200000 = 12 hours in milliseconds
+const ANIMATION_TIME = 3600000; // 43200000 = 12 hours in milliseconds
 
 let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
@@ -57,12 +58,13 @@ const TravelingIcon = ({
     }
 
     const configureSunPath = (data, radius, offset = 0) => {
-        const angle = CalculateCurrentAngleDelta(data, radius);
+        const currentPos = CalculateCurrentAngle(radius);
+        const futurePos = CalculateOneHourAheadAngle(radius);
 
         let pathData = {};
 
-        pathData.startAngle = Math.PI + offset;
-        pathData.endAngle = 0 + angle;
+        pathData.startAngle = currentPos;
+        pathData.endAngle = futurePos;
         pathData.animationTime = ANIMATION_TIME;
         pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
         pathData.start = false;
