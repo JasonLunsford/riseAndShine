@@ -107,6 +107,7 @@ const RiseAndShine = () => {
                 guideDimensions={guideDimensions}
                 radius={radius}
                 weatherData={weatherData}
+                geoData={geoData}
             />
             <TimeBoxes
                 weatherData={weatherData}

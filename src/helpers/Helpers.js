@@ -1,4 +1,5 @@
 import axios from 'axios';
+import SunCalc from 'suncalc';
 
 const _calculateArcDelta = (curRadius, shiftRatio) => {
     return ((2 * Math.PI * curRadius) * shiftRatio) / 2;
@@ -97,27 +98,14 @@ const ConditionMap = (id = 0, styles) => {
 }
 
 const CalculateNearestHour = () => {
+    const millis = 60 * 60 * 1000;
     const now = new Date();
-    const next = new Date();
-    const currentHour = now.getHours();
-    const currentMinutes = now.getMinutes();
 
-    next.setHours(currentHour + Math.round(currentMinutes / 60));
-    next.setMinutes(0, 0, 0);
+    // set future to be the next clock hour
+    const future = new Date(Math.ceil(now.getTime() / millis ) * millis);
 
-    return Math.abs(next - now);
+    return Math.abs(future - now);
 }
-
-const CalculateOffset = data => {
-    const daylightHours = _calculateDaylightHours(data);
-    const spentDaylightHours = _calculateSpentHours(data);
-
-    if (spentDaylightHours <= 0 || spentDaylightHours > daylightHours) {
-        return 0;
-    }
-
-    return Math.PI * (spentDaylightHours / daylightHours);
-};
 
 const CalculateOrigin = (guideDimensions, iconDimensions) => {
     const adjustedX = (guideDimensions.left + guideDimensions.width / 2) - (iconDimensions.left + iconDimensions.right / 2);
@@ -140,29 +128,30 @@ const CalculateYShift = (data, curRadius) => {
     return 2 * curRadius * Math.sin(angle / 2);
 };
 
-const CalculateCurrentAngle = radius => {
-    const d = new Date(), e = new Date(d);
-    const msSinceMidnight = e - d.setHours(0,0,0,0);
-    const ratio = msSinceMidnight / 86400000;
+const CalculateCurrentAngle = gData => {
+    const sunPos = SunCalc.getPosition(new Date(), gData.lat, gData.lon);
 
-    // Full circle's worth of radius * clock ratio, shifted down to
-    // "bottom" of the circle (where midnight is).
-    return ((Math.PI * 2) * ratio) + (Math.PI / 2);
+    return sunPos.altitude + Math.PI;
 }
 
-const CalculateOneHourAheadAngle = radius => {
-    const d = new Date(), e = new Date(d);
-    const msSinceMidnight = (e - d.setHours(0,0,0,0)) + 3600000;
-    const ratio = msSinceMidnight / 86400000;
+const CalculateOneHourAheadAngle = gData => {
+    // milliseconds in an hour
+    const millis = 60 * 60 * 1000;
 
-    return ((Math.PI * 2) * ratio) + (Math.PI / 2);
+    const now = new Date();
+
+    // set future to be the next clock NOT a full hour ahead
+    const future = new Date(Math.ceil(now.getTime() / millis ) * millis);
+
+    const sunPos = SunCalc.getPosition(future, gData.lat, gData.lon);
+
+    return sunPos.altitude + Math.PI;
 }
 
 export {
     CalculateOneHourAheadAngle,
     CalculateCurrentAngle,
     CalculateNearestHour,
-    CalculateOffset,
     CalculateOrigin,
     CalculateRadius,
     CalculateYShift,

@@ -5,18 +5,19 @@ import clsx from 'clsx';
 import {
     CalculateOneHourAheadAngle,
     CalculateCurrentAngle,
-    CalculateOffset,
+    CalculateNearestHour,
     CalculateOrigin,
     ConditionMap
 } from './helpers/Helpers';
 
 import styles from './TravelingIcon.module.scss';
 
-const ANIMATION_TIME = 3600000; // 43200000 = 12 hours in milliseconds
+const ANIMATION_TIME = CalculateNearestHour();
 
 let AnimationWorker = new Worker(new URL('./workers/Animation.js', import.meta.url));
 
 const TravelingIcon = ({
+    geoData,
     guideDimensions,
     radius,
     weatherData
@@ -24,21 +25,20 @@ const TravelingIcon = ({
     const TravelingIconRef = useRef(null);
 
     useEffect(() => {
-        if (weatherData && radius && guideDimensions) {
+        if (weatherData && radius && guideDimensions && geoData) {
             TravelingIconRef.current.style.visibility = 'hidden';
 
             resetAnimationWorker();
-            initTravelingIcon(weatherData, radius, guideDimensions);
+            initTravelingIcon(weatherData, radius, guideDimensions, geoData);
         }
-    }, [guideDimensions, radius, weatherData]);
+    }, [guideDimensions, radius, weatherData, geoData]);
 
-    const initTravelingIcon = (data, radius, dimensions) => {
+    const initTravelingIcon = (data, radius, dimensions, gData) => {
         const iconDimensions = TravelingIconRef.current.getBoundingClientRect();
 
-        const offSet = CalculateOffset(data);
         const origin = CalculateOrigin(dimensions, iconDimensions);
 
-        const sunPath = configureSunPath(data, radius, offSet);
+        const sunPath = configureSunPath(gData);
 
         AnimationWorker.postMessage({ sunPath, origin, radius });
         AnimationWorker.onmessage = ({ data: { position } }) => {
@@ -57,16 +57,16 @@ const TravelingIcon = ({
         TravelingIconRef.current.style.left = 0;
     }
 
-    const configureSunPath = (data, radius, offset = 0) => {
-        const currentPos = CalculateCurrentAngle(radius);
-        const futurePos = CalculateOneHourAheadAngle(radius);
+    const configureSunPath = gData => {
+        const currentPos = CalculateCurrentAngle(gData);
+        const futurePos = CalculateOneHourAheadAngle(gData);
 
         let pathData = {};
 
         pathData.startAngle = currentPos;
         pathData.endAngle = futurePos;
         pathData.animationTime = ANIMATION_TIME;
-        pathData.vector = (pathData.startAngle - pathData.endAngle) / pathData.animationTime;
+        pathData.vector = (pathData.endAngle - pathData.startAngle) / pathData.animationTime;
         pathData.start = false;
         pathData.curAngle = pathData.startAngle;
 
